@@ -1,6 +1,6 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
+from .. import playlistConverter
+
 
 st.title('platform playlist converter')
 
@@ -12,7 +12,8 @@ toPlatform = st.selectbox(
     'to:',
     ('spotify', 'apple music', 'youtube'))
 
-Link = st.text_input('playlist link')
+link = st.text_input('playlist link')
 
 if st.button("transform playlist"):
-    pass #should call convertplaylist from src convertPlaylist.py
+    output_playlist = playlistConverter.convert_playlist(fromPlatform, toPlatform, link)
+    st.write(output_playlist)
