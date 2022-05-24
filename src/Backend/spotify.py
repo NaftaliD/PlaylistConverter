@@ -11,7 +11,7 @@ sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 
 class Spotify:
-    """translate playlist link to string ndarry of song names"""
+    """translate playlist link to string ndarr of song names"""
     def playlist_to_array(playlist_link: str) -> np.ndarray:
         playlist = sp.playlist(playlist_link)
         songs_array = []
