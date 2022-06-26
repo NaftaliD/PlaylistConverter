@@ -15,6 +15,5 @@ toPlatform = st.selectbox(
 link = st.text_input('playlist link')
 
 if st.button("transform playlist"):
-    st.write(type(fromPlatform), type(toPlatform), type(link))
     output_playlist = playlistConverter.convert_playlist(fromPlatform, toPlatform, link)
     st.write(output_playlist)
