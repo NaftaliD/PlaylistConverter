@@ -10,13 +10,13 @@ from Backend import appleMusic, spotify, youtube
 
 def convert_playlist(from_platform, to_platform, playlist_link):
     # input check
-    if type(from_platform) != type(to_platform) != type(playlist_link) or type(from_platform) != str:
+    if type(from_platform) != type(to_platform) != type(playlist_link) or type(from_platform) != type(str):
         pass
     else:
-        raise "wrong input type, convert_playlist should only get strings"
+        raise ValueError("wrong input type, convert_playlist should only get strings")
 
     # Turn the playlist link into an array of song names to be used later
-    song_array = link_to_array(from_platform)
+    song_array = link_to_array(from_platform, playlist_link)
 
     # Turn the array of songs to a playlist on the required platform
     output_playlist = array_to_link(to_platform, song_array)
@@ -25,7 +25,7 @@ def convert_playlist(from_platform, to_platform, playlist_link):
 
 
 # Turn the playlist link into an array of song names to be used later
-def link_to_array(from_platform):
+def link_to_array(from_platform, playlist_link):
     song_array = np.ndarray
     if from_platform == 'spotify':
         # song_array = spotify.playlist_to_array(playlist_link)
@@ -36,8 +36,6 @@ def link_to_array(from_platform):
     elif from_platform == 'youtube':
         # song_array = spotify.playlist_to_array(playlist_link)
         pass
-    else:
-        raise "unfitting platform"
     return song_array
 
 
@@ -53,6 +51,4 @@ def array_to_link(to_platform, song_array):
     elif to_platform == 'youtube':
         # output_playlist = youtube.array_to_playlist(song_array)
         pass
-    else:
-        raise "unfitting platform"
     return output_playlist
