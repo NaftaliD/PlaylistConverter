@@ -16,7 +16,7 @@ class Song:
         return self.song_name
 
 
-class MusicAppInterface():
+class MusicAppInterface:
     # input - string PlaylistLink, output - string ndarry of songs
     @staticmethod
     def playlist_to_array(playlist_link: str) -> np.ndarray:
@@ -24,12 +24,14 @@ class MusicAppInterface():
         pass
 
     # input - string ndarry of songs, output - string PlaylistLink
-    def array_to_playlist(self, song_list: np.ndarray) -> str:
+    @staticmethod
+    def array_to_playlist(song_list: np.ndarray, playlist_name: str):
         """translate string ndarry of song names to playlist link"""
         pass
 
     # input - Song, output - platform specific song
-    def search_song(self, song: Song):
+    @staticmethod
+    def search_song(song: Song):
         """searches for the song on the specific platform"""
         pass
 
