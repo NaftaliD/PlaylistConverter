@@ -52,3 +52,5 @@ def array_to_link(to_platform, song_array, playlist_name):
         # output_playlist = youtube.array_to_playlist(song_array)
         pass
     return output_playlist
+
+convert_playlist('spotify', 'spotify', 'https://open.spotify.com/playlist/37i9dQZF1DXdF699XuZIvg?si=02f0a763af604c95', 'playlist attempt')

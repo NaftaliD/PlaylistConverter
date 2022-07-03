@@ -5,9 +5,9 @@ from . import MusicAppInterface
 
 client_id = '7a63f46f23384ee0a39460dcaa7b6272'
 client_secret = 'b5979f8fda4d49a49e8315b4cf51ff64'
-redirect_uri = 'http://localhost:8501/' #'https://open.spotify.com/collection/playlists'
+redirect_uri = 'https://open.spotify.com/collection/playlists' #'http://localhost:8501/callback'
 
-scope = "playlist-modify-private"
+scope = "playlist-modify-public"
 
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
                                                client_secret=client_secret,
@@ -32,18 +32,29 @@ class Spotify(MusicAppInterface.MusicAppInterface):
 
     # input - Song, output - platform specific song
     @staticmethod
-    def search_song(song: MusicAppInterface.Song):
+    def search_song(song: MusicAppInterface.Song)-> str:
         """searches for the song on spotify platform"""
+
         pass
 
     # input - string ndarry of songs, output - string PlaylistLink
     @staticmethod
     def array_to_playlist(song_list: np.ndarray, playlist_name: str):
         """translate ndarry of songs to playlist"""
+        # create the playlist
         user_id = sp.me()['id']
         sp.user_playlist_create(user_id, playlist_name)
-        pass
-
+        user_playlists = sp.current_user_playlists()['items']
+        for user_playlist in user_playlists:
+            if user_playlist['name'] == playlist_name:
+                new_playlist_id = user_playlist['id']
+                break
+        # add songs to the playlist
+        track_list = []
+        for song in song_list:
+            track = Spotify.search_song(song)
+            track_list.append(track)
+        sp.playlist_add_items(new_playlist_id, track_list)
 
 
 #
