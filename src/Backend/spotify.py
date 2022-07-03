@@ -5,7 +5,7 @@ from . import MusicAppInterface
 
 client_id = '7a63f46f23384ee0a39460dcaa7b6272'
 client_secret = 'b5979f8fda4d49a49e8315b4cf51ff64'
-redirect_uri = 'https://open.spotify.com/collection/playlists' #'http://localhost:8501/callback'
+redirect_uri = 'https://open.spotify.com/collection/playlists'  # 'http://localhost:8501/callback'
 
 scope = "playlist-modify-public"
 
@@ -16,8 +16,6 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
 
 
 class Spotify(MusicAppInterface.MusicAppInterface):
-    def __init__(self):
-        super.__init__()
 
     """translate playlist link to string ndarry of song names"""
     @staticmethod
@@ -32,10 +30,14 @@ class Spotify(MusicAppInterface.MusicAppInterface):
 
     # input - Song, output - platform specific song
     @staticmethod
-    def search_song(song: MusicAppInterface.Song)-> str:
+    def search_song(song: MusicAppInterface.Song) -> str:
         """searches for the song on spotify platform"""
-
-        pass
+        query = song.get_song_name() + ' ' + song.get_artist()
+        result = sp.search(q=query, limit=1, type='track')
+        if len(result['tracks']['items']) == 1:
+            return result['tracks']['items'][0]['id']
+        else:
+            return 'failed search'  # search query failed, song not availble
 
     # input - string ndarry of songs, output - string PlaylistLink
     @staticmethod
@@ -50,19 +52,9 @@ class Spotify(MusicAppInterface.MusicAppInterface):
                 new_playlist_id = user_playlist['id']
                 break
         # add songs to the playlist
-        track_list = []
+        track_list = []  # list off all the tracks to add, holds track_ids
         for song in song_list:
             track = Spotify.search_song(song)
-            track_list.append(track)
+            if track != 'failed search':
+                track_list.append(track)
         sp.playlist_add_items(new_playlist_id, track_list)
-
-
-#
-#
-# playlist_link = 'https://open.spotify.com/playlist/37i9dQZF1DXdF699XuZIvg?si=02f0a763af604c95'
-#
-# songs_array = Spotify.playlist_to_array(playlist_link=playlist_link)
-# for song in songs_array:
-#     print(song.get_song_name() + ', ' + song.get_artist() + '\n')
-# #user_id = sp.me()['id']
-#sp.user_playlist_create(user_id, 'first playlist attempt')
