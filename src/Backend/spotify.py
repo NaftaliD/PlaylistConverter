@@ -1,18 +1,15 @@
 import numpy as np
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 from . import MusicAppInterface
+import json
 
-client_id = '7a63f46f23384ee0a39460dcaa7b6272'
-client_secret = 'b5979f8fda4d49a49e8315b4cf51ff64'
-redirect_uri = 'https://open.spotify.com/collection/playlists'  # 'http://localhost:8501/callback'
+with open("config.json", "r") as jsonfile:
+    data = json.load(jsonfile)
 
-scope = "playlist-modify-public"
-
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
-                                               client_secret=client_secret,
-                                               redirect_uri=redirect_uri,
-                                               scope=scope))
+client_id = data['spotify']['client_id']
+client_secret = data['spotify']['client_secret']
+redirect_url = data['spotify']['redirect_url']
 
 
 class Spotify(MusicAppInterface.MusicAppInterface):
@@ -20,6 +17,10 @@ class Spotify(MusicAppInterface.MusicAppInterface):
     """translate playlist link to string ndarry of song names"""
     @staticmethod
     def playlist_to_array(playlist_link: str) -> np.ndarray:
+        # open a spotify instance, using client Credentials, no user auth required
+        sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=client_id,
+                                                                                 client_secret=client_secret))
+        # read playlist
         playlist = sp.playlist(playlist_link)
         songs_array = []
         for song in playlist['tracks']['items']:
@@ -30,7 +31,7 @@ class Spotify(MusicAppInterface.MusicAppInterface):
 
     # input - Song, output - platform specific song
     @staticmethod
-    def search_song(song: MusicAppInterface.Song) -> str:
+    def search_song(song: MusicAppInterface.Song, sp: spotipy) -> str:
         """searches for the song on spotify platform"""
         query = song.get_song_name() + ' ' + song.get_artist()
         result = sp.search(q=query, limit=1, type='track')
@@ -43,6 +44,12 @@ class Spotify(MusicAppInterface.MusicAppInterface):
     @staticmethod
     def array_to_playlist(song_list: np.ndarray, playlist_name: str):
         """translate ndarry of songs to playlist"""
+        # open a spotify instance, using auth manager, user auth required
+        scope = "playlist-modify-public"
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
+                                                       client_secret=client_secret,
+                                                       redirect_uri=redirect_url,
+                                                       scope=scope))
         # create the playlist
         user_id = sp.me()['id']
         sp.user_playlist_create(user_id, playlist_name)
@@ -54,7 +61,7 @@ class Spotify(MusicAppInterface.MusicAppInterface):
         # add songs to the playlist
         track_list = []  # list off all the tracks to add, holds track_ids
         for song in song_list:
-            track = Spotify.search_song(song)
+            track = Spotify.search_song(song, sp)
             if track != 'failed search':
                 track_list.append(track)
         sp.playlist_add_items(new_playlist_id, track_list)
