@@ -2,31 +2,53 @@ import numpy as np
 
 
 class Song:
-    _song_name_ = ''
-    _artist_ = ''
+    __song_name = ''
+    __artist = ''
 
     def __init__(self, song_name: str, artist: str):
-        self._artist_ = artist
-        self._song_name_ = song_name
+        self.__artist = artist
+        self.__song_name = song_name
 
     def get_artist(self):
-        return self._artist_
+        return self.__artist
 
     def get_song_name(self):
-        return self._song_name_
+        return self.__song_name
 
 
 class MusicAppInterface:
     # input - string PlaylistLink, output - string ndarry of songs
     @staticmethod
     def playlist_to_array(playlist_link: str) -> np.ndarray:
-        """translate playlist link to string ndarry of song names"""
+        """translate playlist link to string ndarry of song names
+
+        Parameters
+        ----------
+        playlist_link : str
+            link of a playlist to be transformed
+
+        Returns
+        -------
+        np.ndarray[Song]
+            array of songs in the Song class format
+        """
         pass
 
     # input - string ndarry of songs, output - string PlaylistLink
     @staticmethod
     def array_to_playlist(song_list: np.ndarray, playlist_name: str) -> str:
-        """translate string ndarry of song names to playlist link"""
+        """
+
+        Args:
+            song_list: np.ndarray[Song]
+                array of songs
+            playlist_name: str
+                name for the new playlist
+
+        Returns:
+            str:
+                link to the newly created playlist
+        """
         pass
 
     # input - Song, output - platform specific song
