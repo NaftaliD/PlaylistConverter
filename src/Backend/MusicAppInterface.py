@@ -2,18 +2,18 @@ import numpy as np
 
 
 class Song:
-    song_name = ''
-    artist = ''
+    _song_name_ = ''
+    _artist_ = ''
 
     def __init__(self, song_name: str, artist: str):
-        self.artist = artist
-        self.song_name = song_name
+        self._artist_ = artist
+        self._song_name_ = song_name
 
     def get_artist(self):
-        return self.artist
+        return self._artist_
 
     def get_song_name(self):
-        return self.song_name
+        return self._song_name_
 
 
 class MusicAppInterface:

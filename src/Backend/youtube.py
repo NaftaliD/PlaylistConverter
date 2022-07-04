@@ -2,6 +2,7 @@ from . import MusicAppInterface
 import numpy as np
 from googleapiclient.discovery import build
 import json
+import re
 
 with open("config.json", "r") as jsonfile:
     data = json.load(jsonfile)
@@ -30,7 +31,9 @@ class Youtube(MusicAppInterface.MusicAppInterface):
         for title in song_titles:
             # not taking artist name due to it usally being in the title / video uploded not by artist
             song_array.append(MusicAppInterface.Song(title, ''))
-
+        print(len(song_array))
+        for i in song_array:
+            print(i.get_song_name())
         return np.array(song_array)
 
     # acsses the playlist and from it get to a list of songs id's
@@ -76,30 +79,14 @@ class Youtube(MusicAppInterface.MusicAppInterface):
     # an attampt of cleaning noise from YouTube titles
     @staticmethod
     def clean_youtube_name_noise(songs_titles: list[str]):
-        # TODO song title sometimes includes stuff like (lyrics) (offical Music Video) and such, it disturbs the
-        #  search and shuld be cleaned, this function is a brute force sultion, sould improve upon it
+        # song title sometimes includes stuff like (lyrics) (offical Music Video) and such,
+        # it disturbs the search and shuld be cleaned
         new_names = []
         for song_name in songs_titles:
-            song_name = song_name.replace('Official Music Video', '')
-            song_name = song_name.replace('Version Original', '')
-            song_name = song_name.replace('Official Video', '')
-            song_name = song_name.replace('official video', '')
-            song_name = song_name.replace('With Lyrics', '')
-            song_name = song_name.replace('With lyrics', '')
-            song_name = song_name.replace('with lyrics', '')
-            song_name = song_name.replace('Audio', '')
-            song_name = song_name.replace('HQ', '')
-            song_name = song_name.replace('HD', '')
-            song_name = song_name.replace('Official Video Remastered', '')
-            song_name = song_name.replace('Lyrics', '')
-            song_name = song_name.replace('lyrics', '')
-            song_name = song_name.replace('Video', '')
-            song_name = song_name.replace('Studio Version', '')
-            song_name = song_name.replace('(', '')
-            song_name = song_name.replace(')', '')
-            song_name = song_name.replace(']', '')
-            song_name = song_name.replace('[', '')
-
+            song_name = re.sub(r"(\(.*\))|(\[.*\])|(\*.*\*)", "", song_name)
+            song_name = re.sub(r'(?i:with lyrics|lyrics|video|offical|audio|hq|hd|studio|original|music|official|'
+                               r'clip|promo|mp4|720p|1080p|full version|1280p|widescreen|version")', '', song_name)
+            song_name = re.sub('\\s+', ' ', song_name)
             new_names.append(song_name)
         return new_names
         pass
