@@ -29,13 +29,12 @@ def link_to_array(from_platform, playlist_link):
     song_array = np.ndarray
     if from_platform == 'spotify':
         song_array = spotify.Spotify.playlist_to_array(playlist_link)
-        pass
     elif from_platform == 'apple_music':
         # song_array = appleMusic.playlist_to_array(playlist_link)
         pass
     elif from_platform == 'youtube':
-        # song_array = spotify.playlist_to_array(playlist_link)
-        pass
+        song_array = youtube.Youtube.playlist_to_array(playlist_link)
+    print('first part done!')
     return song_array
 
 
