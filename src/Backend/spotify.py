@@ -38,11 +38,12 @@ class Spotify(MusicAppInterface.MusicAppInterface):
         if len(result['tracks']['items']) == 1:
             return result['tracks']['items'][0]['id']
         else:
+            print('song not found: ' + song.get_song_name())
             return 'failed search'  # search query failed, song not availble
 
     # input - string ndarry of songs, output - string PlaylistLink
     @staticmethod
-    def array_to_playlist(song_list: np.ndarray, playlist_name: str):
+    def array_to_playlist(song_list: np.ndarray, playlist_name: str) -> str:
         """translate ndarry of songs to playlist"""
         # open a spotify instance, using auth manager, user auth required
         scope = "playlist-modify-public"
@@ -64,4 +65,10 @@ class Spotify(MusicAppInterface.MusicAppInterface):
             track = Spotify.search_song(song, sp)
             if track != 'failed search':
                 track_list.append(track)
-        sp.playlist_add_items(new_playlist_id, track_list)
+            if len(track_list) == 50:  # spotify can only add up to 100 tracks at once
+                sp.playlist_add_items(new_playlist_id, track_list)
+                track_list = []
+        if len(track_list) > 0:
+            sp.playlist_add_items(new_playlist_id, track_list)
+        playlist_href = sp.playlist(new_playlist_id)['external_urls']['spotify']
+        return playlist_href
