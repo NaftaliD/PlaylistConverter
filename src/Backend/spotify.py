@@ -10,7 +10,7 @@ with open("config.json", "r") as jsonfile:
 client_id = data['spotify']['client_id']
 client_secret = data['spotify']['client_secret']
 redirect_url = data['spotify']['redirect_url']
-
+spotify_max_tracks_to_add_at_once = int(data['spotify']['spotify_max_tracks_to_add_at_once'])
 
 class Spotify(MusicAppInterface.MusicAppInterface):
 
@@ -38,7 +38,7 @@ class Spotify(MusicAppInterface.MusicAppInterface):
         if len(result['tracks']['items']) == 1:
             return result['tracks']['items'][0]['id']
         else:
-            print('song not found: ' + song.get_song_name())
+            print('song not found *#* ' + song.get_song_name())
             return 'failed search'  # search query failed, song not availble
 
     # input - string ndarry of songs, output - string PlaylistLink
@@ -65,7 +65,8 @@ class Spotify(MusicAppInterface.MusicAppInterface):
             track = Spotify.search_song(song, sp)
             if track != 'failed search':
                 track_list.append(track)
-            if len(track_list) == 50:  # spotify can only add up to 100 tracks at once
+            if len(track_list) == spotify_max_tracks_to_add_at_once:  # spotify can only add up to 100 tracks at once
+
                 sp.playlist_add_items(new_playlist_id, track_list)
                 track_list = []
         if len(track_list) > 0:

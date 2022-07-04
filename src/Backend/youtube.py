@@ -30,10 +30,7 @@ class Youtube(MusicAppInterface.MusicAppInterface):
         song_array = []
         for title in song_titles:
             # not taking artist name due to it usally being in the title / video uploded not by artist
-            song_array.append(MusicAppInterface.Song(title, ''))
-        print(len(song_array))
-        for i in song_array:
-            print(i.get_song_name())
+            song_array.append(MusicAppInterface.Song(title, None))
         return np.array(song_array)
 
     # acsses the playlist and from it get to a list of songs id's
@@ -83,7 +80,7 @@ class Youtube(MusicAppInterface.MusicAppInterface):
         # it disturbs the search and shuld be cleaned
         new_names = []
         for song_name in songs_titles:
-            song_name = re.sub(r"(\(.*\))|(\[.*\])|(\*.*\*)", "", song_name)
+            song_name = re.sub(r"(\(.*\))|(\[.*])|(\*.*\*)", "", song_name)
             song_name = re.sub(r'(?i:with lyrics|lyrics|video|offical|audio|hq|hd|studio|original|music|official|'
                                r'clip|promo|mp4|720p|1080p|full version|1280p|widescreen|version")', '', song_name)
             song_name = re.sub('\\s+', ' ', song_name)
