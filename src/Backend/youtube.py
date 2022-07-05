@@ -30,7 +30,7 @@ class Youtube(MusicAppInterface.MusicAppInterface):
         song_array = []
         for title in song_titles:
             # not taking artist name due to it usally being in the title / video uploded not by artist
-            song_array.append(MusicAppInterface.Song(title, None))
+            song_array.append(MusicAppInterface.Song(title, ''))
         return np.array(song_array)
 
     # acsses the playlist and from it get to a list of songs id's

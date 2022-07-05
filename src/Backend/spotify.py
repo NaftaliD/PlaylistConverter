@@ -1,75 +1,102 @@
 import numpy as np
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
-from . import MusicAppInterface
 import json
+from .MusicAppInterface import Song, MusicAppInterface
 
 with open("config.json", "r") as jsonfile:
     data = json.load(jsonfile)
 
-client_id = data['spotify']['client_id']
-client_secret = data['spotify']['client_secret']
-redirect_url = data['spotify']['redirect_url']
-spotify_max_tracks_to_add_at_once = int(data['spotify']['spotify_max_tracks_to_add_at_once'])
+CLIENT_ID = data['spotify']['client_id']
+CLIENT_SECRET = data['spotify']['client_secret']
+REDIRECT_URL = data['spotify']['redirect_url']
+SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE = int(data['spotify']['spotify_max_tracks_to_add_at_once'])
 
-class Spotify(MusicAppInterface.MusicAppInterface):
 
-    """translate playlist link to string ndarry of song names"""
+class Spotify(MusicAppInterface):
     @staticmethod
     def playlist_to_array(playlist_link: str) -> np.ndarray:
+        """convert playlist link to str ndarry of song names.
+
+        Keyword arguments:
+        playlist_link : str -- link to playlist
+
+        return:
+        np.ndarray[Song] -- array of songs
+        """
+
         # open a spotify instance, using client Credentials, no user auth required
-        sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=client_id,
-                                                                                 client_secret=client_secret))
+        sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=CLIENT_ID,
+                                                                                 client_secret=CLIENT_SECRET))
         # read playlist
         playlist = sp.playlist(playlist_link)
         songs_array = []
         for song in playlist['tracks']['items']:
             song_name = song['track']['name']
             artist = song['track']['artists'][0]['name']
-            songs_array.append(MusicAppInterface.Song(song_name, artist))
+            songs_array.append(Song(song_name, artist))
         return np.array(songs_array)
 
-    # input - Song, output - platform specific song
     @staticmethod
-    def search_song(song: MusicAppInterface.Song, sp: spotipy) -> str:
-        """searches for the song on spotify platform"""
-        query = song.get_song_name() + ' ' + song.get_artist()
-        result = sp.search(q=query, limit=1, type='track')
-        if len(result['tracks']['items']) == 1:
-            return result['tracks']['items'][0]['id']
-        else:
-            print('song not found *#* ' + song.get_song_name())
-            return 'failed search'  # search query failed, song not availble
+    def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> str:
+        """convert np.ndarray of songs to a playlist.
 
-    # input - string ndarry of songs, output - string PlaylistLink
-    @staticmethod
-    def array_to_playlist(song_list: np.ndarray, playlist_name: str) -> str:
-        """translate ndarry of songs to playlist"""
+        Keyword arguments:
+        song_array: np.ndarray[Song] -- array of songs
+        playlist_name: str -- name for new playlist
+
+        return:
+        str -- link to the newly created string
+        """
+
         # open a spotify instance, using auth manager, user auth required
         scope = "playlist-modify-public"
-        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
-                                                       client_secret=client_secret,
-                                                       redirect_uri=redirect_url,
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,
+                                                       client_secret=CLIENT_SECRET,
+                                                       redirect_uri=REDIRECT_URL,
                                                        scope=scope))
         # create the playlist
         user_id = sp.me()['id']
-        sp.user_playlist_create(user_id, playlist_name)
-        user_playlists = sp.current_user_playlists()['items']
-        for user_playlist in user_playlists:
-            if user_playlist['name'] == playlist_name:
-                new_playlist_id = user_playlist['id']
-                break
+        new_playlist = sp.user_playlist_create(user_id, playlist_name)
         # add songs to the playlist
-        track_list = []  # list off all the tracks to add, holds track_ids
-        for song in song_list:
-            track = Spotify.search_song(song, sp)
-            if track != 'failed search':
-                track_list.append(track)
-            if len(track_list) == spotify_max_tracks_to_add_at_once:  # spotify can only add up to 100 tracks at once
+        Spotify.__playlist_add_tracks(new_playlist['id'], song_array=song_array, sp=sp)
+        return new_playlist['external_urls']['spotify']
 
-                sp.playlist_add_items(new_playlist_id, track_list)
+    @staticmethod
+    def __playlist_add_tracks(playlist_id: str, song_array: np.ndarray, sp: spotipy):
+        """searche a song on a specific platform.
+
+        Keyword arguments:
+        playlist_id: str -- spotify id of a playlist
+        song_array: np.ndarray[Song] -- array of songs
+        sp: spotipy  -- open channel to a service (Spotify/YouTube/Apple Music)
+        """
+        track_list = []  # list off all the tracks to add, holds track_ids
+        for song in song_array:
+            did_find_song, track = Spotify.search_song(song, sp)
+            if did_find_song:
+                track_list.append(track)
+            if len(track_list) == SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE:  # spotify can only add up to 100 tracks at once
+                sp.playlist_add_items(playlist_id, track_list)
                 track_list = []
-        if len(track_list) > 0:
-            sp.playlist_add_items(new_playlist_id, track_list)
-        playlist_href = sp.playlist(new_playlist_id)['external_urls']['spotify']
-        return playlist_href
+        if len(track_list):
+            sp.playlist_add_items(playlist_id, track_list)
+
+    @staticmethod
+    def search_song(song: Song, sp: spotipy) -> (bool, str):
+        """searche a song on a specific platform.
+
+        Keyword arguments:
+        song: Song -- song to be searched
+        sp:spotify  -- open channel to a service (Spotify/YouTube/Apple Music)
+
+        return:
+        bool - True if search successful, False if not
+        str -- song id if search successful, song name if not
+        """
+        query = song.get_song_name() + ' ' + song.get_artist()
+        result = sp.search(q=query, limit=1, type='track')
+        if len(result['tracks']['items']):
+            return True, result['tracks']['items'][0]['id']
+        else:  # search failed on spotify
+            return False, song.get_song_name()
