@@ -1,8 +1,10 @@
 import numpy as np
+import requests.exceptions
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 import json
-from .MusicAppInterface import Song, MusicAppInterface
+from .musicAppInterface import MusicAppInterface
+from .song import Song
 
 with open("config.json", "r") as jsonfile:
     data = json.load(jsonfile)
@@ -29,7 +31,10 @@ class Spotify(MusicAppInterface):
         sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=CLIENT_ID,
                                                                                  client_secret=CLIENT_SECRET))
         # read playlist
-        playlist = sp.playlist(playlist_link)
+        try:
+            playlist = sp.playlist(playlist_link)
+        except (requests.exceptions.HTTPError, spotipy.exceptions.SpotifyException):
+            raise ValueError('invalid spotify playlist link')
         songs_array = []
         for song in playlist['tracks']['items']:
             song_name = song['track']['name']
@@ -48,7 +53,11 @@ class Spotify(MusicAppInterface):
         return:
         str -- link to the newly created string
         """
-
+        # check inputs
+        if type(playlist_name) != str or type(song_array) != np.ndarray:
+            raise TypeError('array_to_playlist shuld recieve an np.ndarray and a string')
+        if playlist_name == '' or not song_array.size:
+            raise ValueError('array_to_playlist inputs cant be empty')
         # open a spotify instance, using auth manager, user auth required
         scope = "playlist-modify-public"
         sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,
@@ -94,6 +103,9 @@ class Spotify(MusicAppInterface):
         bool - True if search successful, False if not
         str -- song id if search successful, song name if not
         """
+        # check input
+        if song.get_song_name() == '' or not song.get_song_name():
+            raise ValueError('search_song input song must contain a name')
         query = song.get_song_name() + ' ' + song.get_artist()
         result = sp.search(q=query, limit=1, type='track')
         if len(result['tracks']['items']):

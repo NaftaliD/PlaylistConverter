@@ -1,4 +1,5 @@
-from . import MusicAppInterface
+from .musicAppInterface import MusicAppInterface
+from .song import Song
 import numpy as np
 from googleapiclient.discovery import build
 import json
@@ -11,7 +12,7 @@ api_key = data['youtube']['api_key']
 client_id = data['youtube']['client_id']
 
 
-class Youtube(MusicAppInterface.MusicAppInterface):
+class Youtube(MusicAppInterface):
     @staticmethod
     def playlist_to_array(playlist_link: str) -> np.ndarray:
         """translate playlist link to string ndarry of song names"""
@@ -30,15 +31,18 @@ class Youtube(MusicAppInterface.MusicAppInterface):
         song_array = []
         for title in song_titles:
             # not taking artist name due to it usally being in the title / video uploded not by artist
-            song_array.append(MusicAppInterface.Song(title, ''))
+            song_array.append(Song(title, ''))
         return np.array(song_array)
 
     # acsses the playlist and from it get to a list of songs id's
     @staticmethod
     def playlist_requst(yt: build, playlist_id: str):
-        next_page_token = None
+        next_page_token = 1
         song_titles = []
-        while True:  # google requst can only send back a page of up to 50 results, so we loop over all the pages
+        # google requst can only send back a page of up to 50 results, so we loop over all the pages
+        while next_page_token:
+            if next_page_token == 1:  # for first loop next_page_token needs to be None
+                next_page_token = None
             pl_request = yt.playlistItems().list(
                 part='contentDetails',
                 playlistId=playlist_id,
@@ -53,8 +57,6 @@ class Youtube(MusicAppInterface.MusicAppInterface):
             # acsses the playlist songs by ids and save thier names (title)
             song_titles = Youtube.songs_requst(yt, songs_ids, song_titles)
             next_page_token = pl_response.get('nextPageToken')
-            if not next_page_token:
-                break
         return song_titles
 
     # acsses the playlist songs by ids and save thier names (title)
@@ -96,6 +98,6 @@ class Youtube(MusicAppInterface.MusicAppInterface):
 
     # input - Song, output - platform specific song
     @staticmethod
-    def search_song(song: MusicAppInterface.Song, service_method) -> str:
+    def search_song(song: Song, service_method) -> str:
         """searches for the song on the specific platform"""
         pass
