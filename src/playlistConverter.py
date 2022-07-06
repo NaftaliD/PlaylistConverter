@@ -1,5 +1,8 @@
 import numpy as np
+import numpy.typing as npt
 from Backend import appleMusic, spotify, youtube
+from Backend.platformFactory import MusicPlatform, PlatformFactory
+from Backend.song import Song
 
 
 def convert_playlist(from_platform: str, to_platform: str, playlist_link: str,
@@ -20,9 +23,10 @@ def convert_playlist(from_platform: str, to_platform: str, playlist_link: str,
     if type(from_platform) != type(to_platform) != type(playlist_link) != type(playlist_name)\
             or type(from_platform) != str:
         raise TypeError('Wrong input type, convert_playlist should only get strings.')
-    if not(from_platform == 'Spotify' or from_platform == 'Apple Music' or from_platform == 'YouTube'):
+    ### CR_2: use:
+    if not MusicPlatform.isValue(from_platform):
         raise ValueError('From_platform must be one of: Spotify, Apple Music, YouTube.')
-    if not(to_platform == 'Spotify' or to_platform == 'Apple Music' or to_platform == 'YouTube'):
+    if not MusicPlatform.isValue(to_platform):
         raise ValueError('to_platform must be one of: Spotify, Apple Music, YouTube.')
 
     # Turn the playlist link into an array of song names to be used later
@@ -32,29 +36,20 @@ def convert_playlist(from_platform: str, to_platform: str, playlist_link: str,
 
     return output_playlist
 
-
+### CR_2: Updated to work with Literal type and platformFactory, check that it works correctly though.
 # Turn the playlist link into an array of song names to be used later
-def link_to_array(from_platform: str, playlist_link: str) -> np.ndarray:
+def link_to_array(from_platform: MusicPlatform, playlist_link: str) -> npt.NDArray[Song]:
     """Convert playlist link to np.ndarray of songs.
 
     Keyword arguments:
-    from_platform: str -- The platform the playlist is from
+    from_platform: MusicPlatform -- The platform the playlist is from
     playlist_link: str -- Link to the original playlist
 
     return:
     np.ndarray[Song] -- array of songs
     """
-
-    if from_platform == 'Spotify':
-        song_array = spotify.Spotify.playlist_to_array(playlist_link)
-    elif from_platform == 'Apple Music':
-        # song_array = appleMusic.playlist_to_array(playlist_link)
-        song_array = []
-    elif from_platform == 'YouTube':
-        song_array = youtube.Youtube.playlist_to_array(playlist_link)
-    else:
-        raise ValueError('From_platform must be one of: Spotify, Apple Music, YouTube.')
-    return song_array
+    platform = PlatformFactory.getPlatform(from_platform);
+    return platform.playlist_to_array(playlist_link);
 
 
 def array_to_link(song_array: np.ndarray, to_platform: str, playlist_name: str) -> str:

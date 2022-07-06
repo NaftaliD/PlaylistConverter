@@ -1,7 +1,7 @@
 import streamlit as st
 import playlistConverter
 
-
+### CR_2: I think the options here need to be capitalized: Spotify instead of spotify
 st.title('platform playlist converter')
 
 fromPlatform = st.selectbox(
