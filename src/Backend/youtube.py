@@ -15,28 +15,45 @@ client_id = data['youtube']['client_id']
 class Youtube(MusicAppInterface):
     @staticmethod
     def playlist_to_array(playlist_link: str) -> np.ndarray:
-        """translate playlist link to string ndarry of song names"""
+        """convert playlist link to str ndarry of song names.
+
+        Keyword arguments:
+        playlist_link : str -- link to playlist
+
+        return:
+        np.ndarray[Song] -- array of songs
+        """
+
         playlist_id = playlist_link.replace('https://youtube.com/playlist?list=', '')
 
         yt = build('youtube', 'v3', developerKey=api_key)  # public access approach, no user auth required
 
         # access the playlist and from it get to a list of songs id's, calls songs_requst,
         # which access the playlist songs by ids and save thier names (title)
-        song_titles = Youtube.playlist_requst(yt, playlist_id)
+        song_titles = Youtube.__playlist_request(yt, playlist_id)
 
         yt.close()
 
         # song title sometimes includes stuff like (lyrics) (offical Music Video) and such, shuld be cleaned out
-        song_titles = Youtube.clean_youtube_name_noise(song_titles)
+        song_titles = Youtube.__clean_youtube_name_noise(song_titles)
         song_array = []
         for title in song_titles:
             # not taking artist name due to it usally being in the title / video uploded not by artist
             song_array.append(Song(title, ''))
         return np.array(song_array)
 
-    # acsses the playlist and from it get to a list of songs id's
     @staticmethod
-    def playlist_requst(yt: build, playlist_id: str):
+    def __playlist_request(yt: build, playlist_id: str) -> list[str]:
+        """Take YouTube playlist and return list of song names.
+
+        Keyword arguments:
+        yt: build -- access to YouTube api
+        playlist_id: str -- playlist id in YouTube format
+
+        return:
+        list[str] -- list of song names
+        """
+
         next_page_token = 1
         song_titles = []
         # google requst can only send back a page of up to 50 results, so we loop over all the pages
@@ -55,13 +72,23 @@ class Youtube(MusicAppInterface):
                 songs_ids.append(item['contentDetails']['videoId'])
 
             # acsses the playlist songs by ids and save thier names (title)
-            song_titles = Youtube.songs_requst(yt, songs_ids, song_titles)
+            song_titles = Youtube.__songs_requst(yt, songs_ids, song_titles)
             next_page_token = pl_response.get('nextPageToken')
         return song_titles
 
-    # acsses the playlist songs by ids and save thier names (title)
     @staticmethod
-    def songs_requst(yt: build, song_ids: list, song_titles: list):
+    def __songs_requst(yt: build, song_ids: list[str], song_titles: list[str]) -> list[str]:
+        """Access the playlist songs by ids and return thier names (title).
+
+        Keyword arguments:
+        yt: build -- access to YouTube api
+        song_ids: list[str] -- song id's in YouTube format
+        song_titles: list[str] -- list of song names to be added upon
+
+        return:
+        list[str] -- modified song_titles
+        """
+
         ids_string = ','.join(song_ids)
         vid_request = yt.videos().list(
             part='snippet',
@@ -72,14 +99,20 @@ class Youtube(MusicAppInterface):
         for item in vid_response['items']:
             song_name = item['snippet']['title']
             song_titles.append(song_name)
-            # not taking artist name due to it usally being in the title / video uploded not by artist
+            # not taking channel name due to it usally being in the title / video uploded not by artist
         return song_titles
 
-    # an attampt of cleaning noise from YouTube titles
     @staticmethod
-    def clean_youtube_name_noise(songs_titles: list[str]):
-        # song title sometimes includes stuff like (lyrics) (offical Music Video) and such,
-        # it disturbs the search and shuld be cleaned
+    def __clean_youtube_name_noise(songs_titles: list[str]) -> list[str]:
+        """Clean song titles of noise that will disturb search functions. E.g.: (lyrics) (offical Music Video) and such.
+
+        Keyword arguments:
+        song_titles: list[str] -- list of song names to be cleaned
+
+        return:
+        list[str] -- modified song_titles
+        """
+
         new_names = []
         for song_name in songs_titles:
             song_name = re.sub(r"(\(.*\))|(\[.*])|(\*.*\*)", "", song_name)
@@ -88,16 +121,30 @@ class Youtube(MusicAppInterface):
             song_name = re.sub('\\s+', ' ', song_name)
             new_names.append(song_name)
         return new_names
-        pass
 
-    # input - string ndarry of songs, output - string PlaylistLink
     @staticmethod
     def array_to_playlist(song_list: np.ndarray, playlist_name: str) -> str:
-        """translate string ndarry of song names to playlist link"""
+        """convert ndarry of songs to a playlist.
+
+        Keyword arguments:
+        song_array: np.ndarray[Song] -- array of songs
+        playlist_name: str -- name for new playlist
+
+        return:
+        str -- link to the newly created string
+        """
         pass
 
-    # input - Song, output - platform specific song
     @staticmethod
-    def search_song(song: Song, service_method) -> str:
-        """searches for the song on the specific platform"""
+    def search_song(song: Song, service_method) -> (bool, str):
+        """searche a song on a specific platform.
+
+        Keyword arguments:
+        song: Song -- song to be searched
+        service_method  -- open channel to a service (Spotify/YouTube/Apple Music)
+
+        return:
+        bool - True if search successful, False if not
+        str -- song id if search successful, song name if not
+        """
         pass
