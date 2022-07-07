@@ -4,7 +4,7 @@ import numpy as np
 from googleapiclient.discovery import build
 import json
 import re
-import youtubeOAuth
+from . import youtubeOAuth
 
 with open("config.json", "r") as jsonfile:
     data = json.load(jsonfile)
@@ -12,6 +12,7 @@ with open("config.json", "r") as jsonfile:
 API_KEY = data['YouTube']['api_key']
 CLIENT_ID = data['YouTube']['client_id']
 YOUTUBE_SCOPE = data['YouTube']['scope']
+YOUTUBE_URL = data['YouTube']['url']
 
 
 class Youtube(MusicAppInterface):
@@ -26,7 +27,7 @@ class Youtube(MusicAppInterface):
         np.ndarray[Song] -- array of songs
         """
 
-        playlist_id = playlist_link.replace('https://youtube.com/playlist?list=', '')
+        playlist_id = playlist_link.replace(YOUTUBE_URL, '')
 
         yt = build('youtube', 'v3', developerKey=API_KEY)  # public access approach, no user auth required
 
@@ -125,7 +126,7 @@ class Youtube(MusicAppInterface):
         return new_names
 
     @staticmethod
-    def array_to_playlist(song_list: np.ndarray, playlist_name: str) -> str:
+    def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> str:
         """Convert ndarry of songs to a playlist.
 
         Keyword arguments:
@@ -139,18 +140,42 @@ class Youtube(MusicAppInterface):
         credentials = youtubeOAuth.handle_oauth(YOUTUBE_SCOPE)
         yt = build('youtube', 'v3', credentials=credentials)  # private access approach, user OAuth2.0 required
 
-        return 'OAuth works'
+        pl_request = yt.playlists().insert(part="snippet, status", body={"snippet": {"title": playlist_name},
+                                                                         "status": {"privacyStatus": "public"}})
+        pl_response = pl_request.execute()  # create the playlist
+        playlist_id = pl_response['id']
+
+        # Add song to the playlist
+        for song in song_array:
+            song_found, song_id = Youtube.__search_song(song, yt)
+            if song_found:
+                song_request = yt.playlistItems().insert(part="snippet",
+                                                         body={"snippet": {"playlistId": playlist_id,
+                                                                           "resourceId": {"kind": "youtube#video",
+                                                                                          "videoId": song_id}}})
+                song_request.execute()
+        return YOUTUBE_URL + playlist_id
 
     @staticmethod
-    def search_song(song: Song, service_method) -> (bool, str):
+    def __search_song(song: Song, yt) -> (bool, str):
         """searche a song on a specific platform.
 
         Keyword arguments:
         song: Song -- song to be searched
-        service_method  -- open channel to a service (Spotify/YouTube/Apple Music)
+        service_method, yt: build  -- open channel to a service (Spotify/YouTube/Apple Music)
 
         return:
         bool - True if search successful, False if not
         str -- song id if search successful, song name if not
         """
-        pass
+        # check input
+        if not song.get_song_name() or not song.get_artist() or song.get_song_name() == '':
+            raise ValueError('search_song input song must contain a name')
+
+        quary = song.get_song_name() + ' ' + song.get_artist()
+        search_request = yt.search().list(part="snippet", maxResults=1, q=quary, type="video")
+        search_response = search_request.execute()
+        if search_response['pageInfo']['totalResults']:
+            return True, search_response['items'][0]['id']['videoId']
+        else:  # search failed on YouTube
+            return False, quary

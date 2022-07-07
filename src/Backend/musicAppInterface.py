@@ -31,7 +31,7 @@ class MusicAppInterface:
         pass
 
     @staticmethod
-    def search_song(song: Song, service_method) -> (bool, str):
+    def __search_song(song: Song, service_method) -> (bool, str):
         """searche a song on a specific platform.
 
         Keyword arguments:

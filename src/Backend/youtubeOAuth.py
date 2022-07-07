@@ -4,7 +4,6 @@ import pickle
 import os
 
 
-@staticmethod
 def handle_oauth(scope: str) -> InstalledAppFlow.credentials:
     """ Handle OAuth2.0 for the YouTube api.
 
@@ -18,17 +17,14 @@ def handle_oauth(scope: str) -> InstalledAppFlow.credentials:
     # token.pickle stores the user's credentials from previously successful logins
     credentials = None
     if os.path.exists('token.pickle'):
-        print('Loading Credentials From File...')
         with open('token.pickle', 'rb') as token:
             credentials = pickle.load(token)
 
     # If there are no valid credentials available, then either refresh the token or log in.
     if not credentials or not credentials.valid:
         if credentials and credentials.expired and credentials.refresh_token:
-            print('Refreshing Access Token...')
             credentials.refresh(Request())
         else:
-            print('Fetching New Tokens...')
             flow = InstalledAppFlow.from_client_secrets_file(
                 'YouTube_client_secret.json',
                 scopes=[
@@ -42,6 +38,5 @@ def handle_oauth(scope: str) -> InstalledAppFlow.credentials:
 
             # Save the credentials for the next run
             with open('token.pickle', 'wb') as f:
-                print('Saving Credentials for Future Use...')
                 pickle.dump(credentials, f)
     return credentials

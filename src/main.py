@@ -4,8 +4,8 @@ spotify_playlist = 'https://open.spotify.com/playlist/37i9dQZF1DXdF699XuZIvg?si=
 youtube_playlist = 'https://youtube.com/playlist?list=PLNxOe-buLm6cz8UQ-hyG1nm3RTNBUBv3K'
 
 
-new_playlist_id = playlistConverter.convert_playlist(from_platform='Spotify',
-                                                     to_platform='YouTube',
-                                                     playlist_link=spotify_playlist,
-                                                     playlist_name='Playlist attempt')
-print('Playlist converted, new playlist link: ' + new_playlist_id)
+new_playlist_link = playlistConverter.convert_playlist(from_platform='Spotify',
+                                                       to_platform='YouTube',
+                                                       playlist_link=spotify_playlist,
+                                                       playlist_name='Spotify playlist on YouTube')
+print('Playlist converted, new playlist link: ' + new_playlist_link)
