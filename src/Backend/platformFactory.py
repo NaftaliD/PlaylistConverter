@@ -1,25 +1,29 @@
-import platform
 from typing import Type
 from enum import Enum
-from Backend.musicAppInterface import MusicAppInterface
-from Backend import appleMusic, spotify, youtube
+from .musicAppInterface import MusicAppInterface
+from . import appleMusic, spotify, youtube
+
 
 class MusicPlatform(Enum):
     Spotify = 'Spotify'
-    Youtube = 'Youtube'
+    YouTube = 'YouTube'
     AppleMusic = 'Apple Music'
     
     @staticmethod
-    def isValue(platform: str):
-        return platform in platform in MusicPlatform._value2member_map_.keys()
+    def is_value(platform: str):
+        for enum in MusicPlatform:
+            if platform is enum.value:
+                return True
+        return False
+
 
 class PlatformFactory:
     @staticmethod
-    def getPlatform(platform: MusicPlatform) -> Type[MusicAppInterface]:
+    def get_platform(platform: str) -> Type[MusicAppInterface]:
         """Get Platform class by string
 
         Args:
-            platform (PLATFORM): The platform to retrieve: Spotify, Youtube, or Apple Music
+            platform (PLATFORM): The platform to retrieve: Spotify, YouTube, or Apple Music
 
         Raises:
             ValueError: Platform must be one of: Spotify, Apple Music, YouTube.
@@ -27,15 +31,27 @@ class PlatformFactory:
         Returns:
             Type[MusicAppInterface]: The platform specific implementation
         """
-        if not MusicPlatform.isValue(platform):
+
+        if not MusicPlatform.is_value(platform):
             raise ValueError('Platform must be of type string and one of: Spotify, Apple Music, YouTube.')
-        
-        match platform:
-            case 'Spotify':
-                return spotify.Spotify
-            case 'Youtube':
-                return youtube.Youtube
-            # case 'Apple Music':
-            #     return appleMusic.AppleMusic
-            case _:
-                raise ValueError("platform: " + platform + " is unsupported");
+
+        if platform == 'Spotify':
+            return spotify.Spotify
+        elif platform == 'YouTube':
+            return youtube.Youtube
+        elif platform == 'Apple Music':
+            raise ValueError('Apple Music isnt implemented yet')
+            # return appleMusic.AppleMusic
+        else:
+            raise ValueError("platform: " + platform + " is unsupported")
+
+        # better approach to do this function but only implemented in py3.10
+        # match platform:
+        #     case 'Spotify':
+        #         return spotify.Spotify
+        #     case 'Youtube':
+        #         return youtube.Youtube
+        #     # case 'Apple Music':
+        #     #     return appleMusic.AppleMusic
+        #     case _:
+        #         raise ValueError("platform: " + platform + " is unsupported");

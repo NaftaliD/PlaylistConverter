@@ -12,6 +12,7 @@ with open("config.json", "r") as jsonfile:
 CLIENT_ID = data['spotify']['client_id']
 CLIENT_SECRET = data['spotify']['client_secret']
 REDIRECT_URL = data['spotify']['redirect_url']
+SPOTIFY_SCOPE = data['spotify']['scope']
 SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE = int(data['spotify']['spotify_max_tracks_to_add_at_once'])
 
 
@@ -53,17 +54,17 @@ class Spotify(MusicAppInterface):
         return:
         str -- link to the newly created string
         """
+
         # check inputs
         if type(playlist_name) != str or type(song_array) != np.ndarray:
             raise TypeError('array_to_playlist shuld recieve an np.ndarray and a string')
         if playlist_name == '' or not song_array.size:
             raise ValueError('array_to_playlist inputs cant be empty')
         # open a spotify instance, using auth manager, user auth required
-        scope = "playlist-modify-public"
         sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID,
                                                        client_secret=CLIENT_SECRET,
                                                        redirect_uri=REDIRECT_URL,
-                                                       scope=scope))
+                                                       scope=SPOTIFY_SCOPE))
         # create the playlist
         user_id = sp.me()['id']
         new_playlist = sp.user_playlist_create(user_id, playlist_name)
@@ -80,7 +81,7 @@ class Spotify(MusicAppInterface):
         song_array: np.ndarray[Song] -- array of songs
         sp: spotipy  -- open channel to a service (Spotify/YouTube/Apple Music)
         """
-        ### CR_2: Would do it like this
+
         track_list = []  # list off all the tracks to add, holds track_ids
         for song in song_array:
             did_find_song, track = Spotify.search_song(song, sp)
