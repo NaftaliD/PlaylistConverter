@@ -9,11 +9,11 @@ from .song import Song
 with open("config.json", "r") as jsonfile:
     data = json.load(jsonfile)
 
-CLIENT_ID = data['spotify']['client_id']
-CLIENT_SECRET = data['spotify']['client_secret']
-REDIRECT_URL = data['spotify']['redirect_url']
-SPOTIFY_SCOPE = data['spotify']['scope']
-SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE = int(data['spotify']['spotify_max_tracks_to_add_at_once'])
+CLIENT_ID = data['Spotify']['client_id']
+CLIENT_SECRET = data['Spotify']['client_secret']
+REDIRECT_URL = data['Spotify']['redirect_url']
+SPOTIFY_SCOPE = data['Spotify']['scope']
+SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE = int(data['Spotify']['spotify_max_tracks_to_add_at_once'])
 
 
 class Spotify(MusicAppInterface):

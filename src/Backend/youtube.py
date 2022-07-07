@@ -4,12 +4,14 @@ import numpy as np
 from googleapiclient.discovery import build
 import json
 import re
+import youtubeOAuth
 
 with open("config.json", "r") as jsonfile:
     data = json.load(jsonfile)
 
-api_key = data['youtube']['api_key']
-client_id = data['youtube']['client_id']
+API_KEY = data['YouTube']['api_key']
+CLIENT_ID = data['YouTube']['client_id']
+YOUTUBE_SCOPE = data['YouTube']['scope']
 
 
 class Youtube(MusicAppInterface):
@@ -26,7 +28,7 @@ class Youtube(MusicAppInterface):
 
         playlist_id = playlist_link.replace('https://youtube.com/playlist?list=', '')
 
-        yt = build('youtube', 'v3', developerKey=api_key)  # public access approach, no user auth required
+        yt = build('youtube', 'v3', developerKey=API_KEY)  # public access approach, no user auth required
 
         # access the playlist and from it get to a list of songs id's, calls songs_requst,
         # which access the playlist songs by ids and save thier names (title)
@@ -124,7 +126,7 @@ class Youtube(MusicAppInterface):
 
     @staticmethod
     def array_to_playlist(song_list: np.ndarray, playlist_name: str) -> str:
-        """convert ndarry of songs to a playlist.
+        """Convert ndarry of songs to a playlist.
 
         Keyword arguments:
         song_array: np.ndarray[Song] -- array of songs
@@ -133,7 +135,11 @@ class Youtube(MusicAppInterface):
         return:
         str -- link to the newly created string
         """
-        pass
+
+        credentials = youtubeOAuth.handle_oauth(YOUTUBE_SCOPE)
+        yt = build('youtube', 'v3', credentials=credentials)  # private access approach, user OAuth2.0 required
+
+        return 'OAuth works'
 
     @staticmethod
     def search_song(song: Song, service_method) -> (bool, str):
