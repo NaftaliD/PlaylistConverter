@@ -41,7 +41,7 @@ class PlatformFactory:
             return youtube.Youtube
         elif platform == 'Apple Music':
             raise ValueError('Apple Music isnt implemented yet')
-            # return appleMusic.AppleMusic
+            return appleMusic.AppleMusic
         else:
             raise ValueError("platform: " + platform + " is unsupported")
 

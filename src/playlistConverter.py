@@ -1,6 +1,5 @@
 import numpy as np
 import numpy.typing as npt
-from Backend import appleMusic, spotify, youtube
 from Backend.platformFactory import MusicPlatform, PlatformFactory
 from Backend.song import Song
 
@@ -38,7 +37,7 @@ def convert_playlist(from_platform: str, to_platform: str, playlist_link: str,
 
 # CR_2: Updated to work with Literal type and platformFactory, check that it works correctly though.
 # Turn the playlist link into an array of song names to be used later
-def link_to_array(from_platform: MusicPlatform, playlist_link: str) -> npt.NDArray[Song]:
+def link_to_array(from_platform: str, playlist_link: str) -> npt.NDArray[Song]:
     """Convert playlist link to np.ndarray of songs.
 
     Keyword arguments:
