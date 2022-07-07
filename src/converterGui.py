@@ -5,16 +5,16 @@ import playlistConverter
 st.title('platform playlist converter')
 
 fromPlatform = st.selectbox(
-    'playlist from platform:',
-    ('spotify', 'apple music', 'youtube'))
+    'Playlist from platform:',
+    ('Spotify', 'Apple Music', 'YouTube'))
 
-link = st.text_input('playlist link:')
+link = st.text_input('Playlist link:')
 
 toPlatform = st.selectbox(
-    'move to platform:',
-    ('spotify', 'apple music', 'youtube'))
+    'Move to platform:',
+    ('Spotify', 'Apple Music', 'YouTube'))
 
-playlist_name = st.text_input('playlist name:')
+playlist_name = st.text_input('Playlist name:')
 
-if st.button("transform playlist"):
+if st.button("Transform playlist"):
     playlistConverter.convert_playlist(fromPlatform, toPlatform, link, playlist_name)
