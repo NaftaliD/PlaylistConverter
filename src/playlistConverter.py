@@ -5,7 +5,7 @@ from Backend.song import Song
 
 
 def convert_playlist(from_platform: str, to_platform: str, playlist_link: str,
-                     playlist_name='New converted playlist!') -> str:
+                     playlist_name=None) -> str:
     """Convert playlist from one platform to another.
 
     Keyword arguments:
@@ -19,8 +19,7 @@ def convert_playlist(from_platform: str, to_platform: str, playlist_link: str,
     """
 
     # input check
-    if type(from_platform) != type(to_platform) != type(playlist_link) != type(playlist_name)\
-            or type(from_platform) != str:
+    if type(from_platform) != type(to_platform) != type(playlist_link) or type(from_platform) != str:
         raise TypeError('Wrong input type, convert_playlist should only get strings.')
     if not MusicPlatform.is_value(from_platform):
         raise ValueError('From_platform must be one of: Spotify, Apple Music, YouTube.')
@@ -28,16 +27,16 @@ def convert_playlist(from_platform: str, to_platform: str, playlist_link: str,
         raise ValueError('to_platform must be one of: Spotify, Apple Music, YouTube.')
 
     # Turn the playlist link into an array of song names to be used later
-    song_array = link_to_array(from_platform=from_platform, playlist_link=playlist_link)
+    song_array, playlist_title = link_to_array(from_platform=from_platform, playlist_link=playlist_link)
+    playlist_name = playlist_title if not playlist_name else playlist_name
     # Turn the array of songs to a playlist on the required platform
     output_playlist = array_to_link(song_array, to_platform=to_platform, playlist_name=playlist_name)
 
     return output_playlist
 
 
-# CR_2: Updated to work with Literal type and platformFactory, check that it works correctly though.
 # Turn the playlist link into an array of song names to be used later
-def link_to_array(from_platform: str, playlist_link: str) -> npt.NDArray[Song]:
+def link_to_array(from_platform: str, playlist_link: str) -> (npt.NDArray[Song], str):
     """Convert playlist link to np.ndarray of songs.
 
     Keyword arguments:
@@ -46,6 +45,7 @@ def link_to_array(from_platform: str, playlist_link: str) -> npt.NDArray[Song]:
 
     return:
     np.ndarray[Song] -- array of songs
+    str -- playlist_title
     """
 
     platform = PlatformFactory.get_platform(from_platform)

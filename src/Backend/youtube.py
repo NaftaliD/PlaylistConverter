@@ -17,7 +17,7 @@ YOUTUBE_URL = data['YouTube']['url']
 
 class Youtube(MusicAppInterface):
     @staticmethod
-    def playlist_to_array(playlist_link: str) -> np.ndarray:
+    def playlist_to_array(playlist_link: str) -> (np.ndarray, str):
         """convert playlist link to str ndarry of song names.
 
         Keyword arguments:
@@ -25,16 +25,19 @@ class Youtube(MusicAppInterface):
 
         return:
         np.ndarray[Song] -- array of songs
+        str -- playlist_title
         """
 
         playlist_id = playlist_link.replace(YOUTUBE_URL, '')
+
+        # TODO add checks for playlist link validity
 
         yt = build('youtube', 'v3', developerKey=API_KEY)  # public access approach, no user auth required
 
         # access the playlist and from it get to a list of songs id's, calls songs_requst,
         # which access the playlist songs by ids and save thier names (title)
         song_titles = Youtube.__playlist_request(yt, playlist_id)
-
+        playlist_title = ''  # TODO implement this
         yt.close()
 
         # song title sometimes includes stuff like (lyrics) (offical Music Video) and such, shuld be cleaned out
@@ -43,7 +46,7 @@ class Youtube(MusicAppInterface):
         for title in song_titles:
             # not taking artist name due to it usally being in the title / video uploded not by artist
             song_array.append(Song(title, ''))
-        return np.array(song_array)
+        return np.array(song_array), playlist_title
 
     @staticmethod
     def __playlist_request(yt: build, playlist_id: str) -> list[str]:

@@ -18,14 +18,15 @@ SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE = int(data['Spotify']['spotify_max_tracks_to_a
 
 class Spotify(MusicAppInterface):
     @staticmethod
-    def playlist_to_array(playlist_link: str) -> np.ndarray:
-        """convert playlist link to str ndarry of song names.
+    def playlist_to_array(playlist_link: str) -> (np.ndarray, str):
+        """convert playlist link to str ndarry of Songs.
 
         Keyword arguments:
         playlist_link : str -- link to playlist
 
         return:
         np.ndarray[Song] -- array of songs
+        str -- playlist_title
         """
 
         # open a spotify instance, using client Credentials, no user auth required
@@ -35,13 +36,20 @@ class Spotify(MusicAppInterface):
         try:
             playlist = sp.playlist(playlist_link)
         except (requests.exceptions.HTTPError, spotipy.exceptions.SpotifyException):
-            raise ValueError('invalid spotify playlist link')
+            raise ValueError('Invalid Spotify playlist link')
+        playlist_title = playlist['name']
         songs_array = []
         for song in playlist['tracks']['items']:
             song_name = song['track']['name']
             artist = song['track']['artists'][0]['name']
-            songs_array.append(Song(song_name, artist))
-        return np.array(songs_array)
+            if song['video_thumbnail']['url']:
+                image = song['video_thumbnail']['url']
+            elif len(song['track']['album']['images']):  # Take album picture
+                image = song['track']['album']['images'][0]['url']
+            else:
+                image = None
+            songs_array.append(Song(song_name, artist, image))
+        return np.array(songs_array), playlist_title
 
     @staticmethod
     def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> str:
@@ -57,7 +65,8 @@ class Spotify(MusicAppInterface):
 
         # check inputs
         if type(playlist_name) != str or type(song_array) != np.ndarray:
-            raise TypeError('array_to_playlist shuld recieve an np.ndarray and a string')
+            raise TypeError('array_to_playlist shuld recieve an np.ndarray and a string,'
+                            ' recieved {} and {}'.format(type(playlist_name), type(song_array)))
         if playlist_name == '' or not song_array.size:
             raise ValueError('array_to_playlist inputs cant be empty')
         # open a spotify instance, using auth manager, user auth required

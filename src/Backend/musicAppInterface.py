@@ -4,7 +4,7 @@ from .song import Song
 
 class MusicAppInterface:
     @staticmethod
-    def playlist_to_array(playlist_link: str) -> np.ndarray:
+    def playlist_to_array(playlist_link: str) -> (np.ndarray, str):
         """convert playlist link to str ndarry of song names.
 
         Keyword arguments:
@@ -12,6 +12,7 @@ class MusicAppInterface:
 
         return:
         np.ndarray[Song] -- array of songs
+        str -- playlist_title
         """
 
         pass
