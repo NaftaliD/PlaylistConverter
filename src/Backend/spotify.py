@@ -89,7 +89,7 @@ class Spotify(MusicAppInterface):
                 track_list.append(track)
         if len(track_list):
             for i in range(0, len(track_list), SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE):
-                sp.playlist_add_items(playlist_id, track_list[i:i+SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE])
+                sp.playlist_add_items(playlist_id, track_list[i:i + SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE])
 
     @staticmethod
     def __search_song(song: Song, sp: spotipy) -> (bool, str):
@@ -104,7 +104,7 @@ class Spotify(MusicAppInterface):
         str -- song id if search successful, song name if not
         """
         # check input
-        if not song.get_song_name() or not song.get_artist() or song.get_song_name() == '':
+        if not song.get_song_name() or type(song.get_artist()) is not str or song.get_song_name() == '':
             raise ValueError('search_song input song must contain a name')
         quary = song.get_song_name() + ' ' + song.get_artist()
         result = sp.search(q=quary, limit=1, type='track')
