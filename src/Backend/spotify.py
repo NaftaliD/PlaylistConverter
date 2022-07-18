@@ -113,9 +113,9 @@ class Spotify(MusicAppInterface):
         str -- song id if search successful, song name if not
         """
         # check input
-        if not song.get_song_name() or type(song.get_artist()) is not str or song.get_song_name() == '':
+        if not song.get_title() or type(song.get_artist()) is not str or song.get_title() == '':
             raise ValueError('search_song input song must contain a name')
-        quary = song.get_song_name() + ' ' + song.get_artist()
+        quary = song.get_title() + ' ' + song.get_artist()
         result = sp.search(q=quary, limit=1, type='track')
         if len(result['tracks']['items']):
             return True, result['tracks']['items'][0]['id']

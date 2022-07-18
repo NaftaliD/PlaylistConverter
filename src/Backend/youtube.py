@@ -1,7 +1,9 @@
+import requests.exceptions
 from .musicAppInterface import MusicAppInterface
 from .song import Song
 import numpy as np
 from googleapiclient.discovery import build
+import googleapiclient
 import json
 import re
 from . import youtubeOAuth
@@ -34,22 +36,23 @@ class Youtube(MusicAppInterface):
 
         yt = build('youtube', 'v3', developerKey=API_KEY)  # public access approach, no user auth required
 
+        try:
+            playlist = yt.playlists().list(part='snippet', id=playlist_id).execute()
+        except (requests.exceptions.HTTPError, googleapiclient.errors.HttpError):
+            raise ValueError('YouTube playlist link invalid')
+
+        playlist_title = playlist['items'][0]['snippet']['title']
         # access the playlist and from it get to a list of songs id's, calls songs_requst,
         # which access the playlist songs by ids and save thier names (title)
-        song_titles = Youtube.__playlist_request(yt, playlist_id)
-        playlist_title = ''  # TODO implement this
+        song_array = Youtube.__playlist_request(yt, playlist_id)
         yt.close()
 
         # song title sometimes includes stuff like (lyrics) (offical Music Video) and such, shuld be cleaned out
-        song_titles = Youtube.__clean_youtube_name_noise(song_titles)
-        song_array = []
-        for title in song_titles:
-            # not taking artist name due to it usally being in the title / video uploded not by artist
-            song_array.append(Song(title, ''))
+        Youtube.__clean_youtube_name_noise(song_array)
         return np.array(song_array), playlist_title
 
     @staticmethod
-    def __playlist_request(yt: build, playlist_id: str) -> list[str]:
+    def __playlist_request(yt: build, playlist_id: str) -> np.ndarray:
         """Take YouTube playlist and return list of song names.
 
         Keyword arguments:
@@ -57,11 +60,11 @@ class Youtube(MusicAppInterface):
         playlist_id: str -- playlist id in YouTube format
 
         return:
-        list[str] -- list of song names
+        np.ndarray[Song] -- array of songs
         """
 
         next_page_token = 1
-        song_titles = []
+        song_array = []
         # google requst can only send back a page of up to 50 results, so we loop over all the pages
         while next_page_token:
             if next_page_token == 1:  # for first loop next_page_token needs to be None
@@ -78,21 +81,21 @@ class Youtube(MusicAppInterface):
                 songs_ids.append(item['contentDetails']['videoId'])
 
             # acsses the playlist songs by ids and save thier names (title)
-            song_titles = Youtube.__songs_requst(yt, songs_ids, song_titles)
+            song_array = Youtube.__songs_requst(yt, songs_ids, song_array)
             next_page_token = pl_response.get('nextPageToken')
-        return song_titles
+        return np.array(song_array)
 
     @staticmethod
-    def __songs_requst(yt: build, song_ids: list[str], song_titles: list[str]) -> list[str]:
+    def __songs_requst(yt: build, song_ids: list[str], song_array: list[Song]) -> list[Song]:
         """Access the playlist songs by ids and return thier names (title).
 
         Keyword arguments:
         yt: build -- access to YouTube api
         song_ids: list[str] -- song id's in YouTube format
-        song_titles: list[str] -- list of song names to be added upon
+        song_array: list[Song] -- list of song names to be added upon
 
         return:
-        list[str] -- modified song_titles
+        list[Song] -- modified song_titles
         """
 
         ids_string = ','.join(song_ids)
@@ -104,29 +107,27 @@ class Youtube(MusicAppInterface):
         vid_response = vid_request.execute()
         for item in vid_response['items']:
             song_name = item['snippet']['title']
-            song_titles.append(song_name)
+            song_image = item['snippet']['thumbnails']['default']['url']
+            song_array.append(Song(title=song_name, artist='', image=song_image))
             # not taking channel name due to it usally being in the title / video uploded not by artist
-        return song_titles
+        return song_array
 
     @staticmethod
-    def __clean_youtube_name_noise(songs_titles: list[str]) -> list[str]:
+    def __clean_youtube_name_noise(song_array: list[Song]):
         """Clean song titles of noise that will disturb search functions. E.g.: (lyrics) (offical Music Video) and such.
 
         Keyword arguments:
-        song_titles: list[str] -- list of song names to be cleaned
+        song_array: list[Song] -- list of song names to be cleaned
 
-        return:
-        list[str] -- modified song_titles
         """
 
-        new_names = []
-        for song_name in songs_titles:
+        for song in song_array:
+            song_name = song.get_title()
             song_name = re.sub(r"(\(.*\))|(\[.*])|(\*.*\*)", "", song_name)
             song_name = re.sub(r'(?i:with lyrics|lyrics|video|offical|audio|hq|hd|studio|original|music|official|'
                                r'clip|promo|mp4|720p|1080p|full version|1280p|widescreen|version")', '', song_name)
             song_name = re.sub('\\s+', ' ', song_name)
-            new_names.append(song_name)
-        return new_names
+            song.set_title(song_name)
 
     @staticmethod
     def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> str:
@@ -172,10 +173,10 @@ class Youtube(MusicAppInterface):
         str -- song id if search successful, song name if not
         """
         # check input
-        if not song.get_song_name() or not song.get_artist() or song.get_song_name() == '':
+        if not song.get_title() or not song.get_artist() or song.get_title() == '':
             raise ValueError('search_song input song must contain a name')
 
-        quary = song.get_song_name() + ' ' + song.get_artist()
+        quary = song.get_title() + ' ' + song.get_artist()
         search_request = yt.search().list(part="snippet", maxResults=1, q=quary, type="video")
         search_response = search_request.execute()
         if search_response['pageInfo']['totalResults']:
