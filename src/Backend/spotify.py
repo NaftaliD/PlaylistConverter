@@ -93,9 +93,10 @@ class Spotify(MusicAppInterface):
 
         track_list = []  # list off all the tracks to add, holds track_ids
         for song in song_array:
-            did_find_song, track = Spotify.__search_song(song, sp)
-            if did_find_song:
-                track_list.append(track)
+            if song.get_is_include():
+                did_find_song, track = Spotify.__search_song(song, sp)
+                if did_find_song:
+                    track_list.append(track)
         if len(track_list):
             for i in range(0, len(track_list), SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE):
                 sp.playlist_add_items(playlist_id, track_list[i:i + SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE])

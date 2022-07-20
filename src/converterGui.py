@@ -3,25 +3,19 @@ import playlistConverter
 import numpy as np
 
 
-def checkbox_callback(songs_set: set, key):
-    songs_set.add(key)
-
-
-def print_playlist_table(songs: np.ndarray, title: str) -> set:
+def print_playlist_table(songs: np.ndarray, title: str):
     playlist_table = st.expander('Expand:', True, )
-    songs_not_to_transform = set()
     with playlist_table:
         title_culs = st.columns([1, 5, 1])
         title_culs[1].header(title)
         i = 0
         for song in songs:
             columns = st.columns([1, 1, 7])
-            columns[0].checkbox('', key=i, value=True, on_change=checkbox_callback, args=(songs_not_to_transform, i))
+            columns[0].checkbox('', key=i, value=True, on_change=song.change_include())
             columns[1].image(song.get_image(), width=40)
             columns[2].write(song.get_title() + ' ' + song.get_artist())
             st.write('')
             i += 1
-    return songs_not_to_transform
 
 
 st.title('platform playlist converter')

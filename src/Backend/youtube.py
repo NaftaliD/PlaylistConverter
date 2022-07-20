@@ -113,11 +113,11 @@ class Youtube(MusicAppInterface):
         return song_array
 
     @staticmethod
-    def __clean_youtube_name_noise(song_array: list[Song]):
+    def __clean_youtube_name_noise(song_array: np.ndarray):
         """Clean song titles of noise that will disturb search functions. E.g.: (lyrics) (offical Music Video) and such.
 
         Keyword arguments:
-        song_array: list[Song] -- list of song names to be cleaned
+        song_array: np.array[Song] -- list of song names to be cleaned
 
         """
 
@@ -151,13 +151,14 @@ class Youtube(MusicAppInterface):
 
         # Add song to the playlist
         for song in song_array:
-            song_found, song_id = Youtube.__search_song(song, yt)
-            if song_found:
-                song_request = yt.playlistItems().insert(part="snippet",
-                                                         body={"snippet": {"playlistId": playlist_id,
-                                                                           "resourceId": {"kind": "youtube#video",
-                                                                                          "videoId": song_id}}})
-                song_request.execute()
+            if song.get_is_include():
+                song_found, song_id = Youtube.__search_song(song, yt)
+                if song_found:
+                    song_request = yt.playlistItems().insert(part="snippet",
+                                                             body={"snippet": {"playlistId": playlist_id,
+                                                                               "resourceId": {"kind": "youtube#video",
+                                                                                              "videoId": song_id}}})
+                    song_request.execute()
         return YOUTUBE_URL + playlist_id
 
     @staticmethod
