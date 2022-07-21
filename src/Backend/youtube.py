@@ -40,6 +40,8 @@ class Youtube(MusicAppInterface):
             playlist = yt.playlists().list(part='snippet', id=playlist_id).execute()
         except (requests.exceptions.HTTPError, googleapiclient.errors.HttpError):
             raise ValueError('YouTube playlist link invalid')
+        if not len(playlist['items']):
+            raise ValueError('YouTube playlist link invalid')
 
         playlist_title = playlist['items'][0]['snippet']['title']
         # access the playlist and from it get to a list of songs id's, calls songs_requst,
