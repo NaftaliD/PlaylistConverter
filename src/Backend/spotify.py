@@ -52,7 +52,7 @@ class Spotify(MusicAppInterface):
         return np.array(songs_array), playlist_title
 
     @staticmethod
-    def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> str:
+    def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> dict:
         """convert np.ndarray of songs to a playlist.
 
         Keyword arguments:
@@ -60,7 +60,7 @@ class Spotify(MusicAppInterface):
         playlist_name: str -- name for new playlist
 
         return:
-        str -- link to the newly created string
+        dict -- details of the moved playlist
         """
 
         # check inputs
@@ -78,28 +78,37 @@ class Spotify(MusicAppInterface):
         user_id = sp.me()['id']
         new_playlist = sp.user_playlist_create(user_id, playlist_name)
         # add songs to the playlist
-        Spotify.__playlist_add_tracks(new_playlist['id'], song_array=song_array, sp=sp)
-        return new_playlist['external_urls']['spotify']
+        new_playlist_data = Spotify.__playlist_add_tracks(new_playlist['id'], song_array=song_array, sp=sp)
+        new_playlist_data['playlist_url'] = new_playlist['external_urls']['spotify']
+        return new_playlist_data
 
     @staticmethod
-    def __playlist_add_tracks(playlist_id: str, song_array: np.ndarray, sp: spotipy):
+    def __playlist_add_tracks(playlist_id: str, song_array: np.ndarray, sp: spotipy) -> dict:
         """searche a song on a specific platform.
 
         Keyword arguments:
         playlist_id: str -- spotify id of a playlist
         song_array: np.ndarray[Song] -- array of songs
         sp: spotipy  -- open channel to a service (Spotify/YouTube/Apple Music)
+
+        return:
+        dict -- details of the succsess and failer of moving tracks
         """
 
         track_list = []  # list off all the tracks to add, holds track_ids
+        playlist_data = {'tracks_failed': [], 'tracks_moved': 0}
         for song in song_array:
             if song.get_is_include():
                 did_find_song, track = Spotify.__search_song(song, sp)
                 if did_find_song:
                     track_list.append(track)
+                    playlist_data['tracks_moved'] += 1
+                else:
+                    playlist_data['tracks_failed'].append(track)
         if len(track_list):
             for i in range(0, len(track_list), SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE):
                 sp.playlist_add_items(playlist_id, track_list[i:i + SPOTIFY_MAX_TRACKS_TO_ADD_AT_ONCE])
+        return playlist_data
 
     @staticmethod
     def __search_song(song: Song, sp: spotipy) -> (bool, str):

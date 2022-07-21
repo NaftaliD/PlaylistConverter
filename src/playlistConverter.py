@@ -52,7 +52,7 @@ def link_to_array(from_platform: str, playlist_link: str) -> (npt.NDArray[Song],
     return platform.playlist_to_array(playlist_link)
 
 
-def array_to_link(song_array: np.ndarray, to_platform: str, playlist_name: str) -> str:
+def array_to_link(song_array: np.ndarray, to_platform: str, playlist_name: str) -> dict:
     """Convert array of songs to a playlist.
 
     Keyword arguments:
@@ -61,7 +61,7 @@ def array_to_link(song_array: np.ndarray, to_platform: str, playlist_name: str) 
     playlist_name: str -- New playlist name
 
     return:
-    str -- link to playlist on the new platform
+    dict -- details of the moved playlist
     """
 
     platform = PlatformFactory.get_platform(to_platform)

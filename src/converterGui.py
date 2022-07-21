@@ -6,7 +6,10 @@ from Backend.song import Song
 
 def song_callback(song: Song):
     song.change_include()
-    st.write(song.get_is_include())
+    if song.get_is_include():
+        st.session_state.songs_included += 1
+    else:
+        st.session_state.songs_included -= 1
 
 
 def print_playlist_table(songs: np.ndarray, title: str):
@@ -19,8 +22,9 @@ def print_playlist_table(songs: np.ndarray, title: str):
 
     playlist_table = st.expander('Expand:', True, )
     with playlist_table:
-        title_culs = st.columns([1, 5, 1])
-        title_culs[1].header(title)
+        title_culs = st.columns([1, 4])
+        title_culs[0].subheader('{}/{}'.format(st.session_state.songs_included, songs.size))
+        title_culs[1].subheader(title)
         i = 0
         for song in songs:
             columns = st.columns([1, 1, 7])
@@ -37,11 +41,13 @@ st.title('platform playlist converter')
 if 'playlist_imported' not in st.session_state:
     st.session_state.playlist_imported = False
 if 'song_array' not in st.session_state:
-    st.session_state.song_array = []
+    st.session_state.song_array = np.ndarray
 if 'playlist_title' not in st.session_state:
     st.session_state.playlist_title = ''
 if 'playlist_link' not in st.session_state:
     st.session_state.playlist_link = ''
+if 'songs_included' not in st.session_state:
+    st.session_state.songs_included = 0
 
 from_platform = st.selectbox(
     'Playlist from platform:',
@@ -51,7 +57,7 @@ link = st.text_input('Playlist link:')
 
 if link != st.session_state.playlist_link:  # The link was deleted or changed
     st.session_state.playlist_imported = False
-    st.session_state.song_array = []
+    st.session_state.song_array = np.ndarray
     st.session_state.playlist_title = ''
     st.session_state.playlist_link = link
 
@@ -59,8 +65,8 @@ if st.session_state.playlist_link and not st.session_state.playlist_imported:
     try:
         st.session_state.song_array, st.session_state.playlist_title = \
             playlistConverter.link_to_array(from_platform=from_platform, playlist_link=link)
-        print('imported playlist')
         st.session_state.playlist_imported = True
+        st.session_state.songs_included = st.session_state.song_array.size
     except ValueError:
         st.write('playlist link invalid')
 
@@ -73,8 +79,14 @@ if st.session_state.playlist_imported:
 
     playlist_name = st.text_input('Playlist name:', value=st.session_state.playlist_title)
 
-    if st.button("Transform playlist"):
-        transformed_playlist_link = playlistConverter.array_to_link(song_array=st.session_state.song_array,
-                                                                    to_platform=to_platform,
-                                                                    playlist_name=playlist_name)
-        st.success('Playlist converted to ' + to_platform + ', new playlist link: ' + transformed_playlist_link)
+    with st.empty():
+        if st.button("Transform playlist"):
+            with st.spinner('Moving playlist...'):
+                transformed_playlist_data = playlistConverter.array_to_link(song_array=st.session_state.song_array,
+                                                                            to_platform=to_platform,
+                                                                            playlist_name=playlist_name)
+            track_count = transformed_playlist_data['tracks_moved']+len(transformed_playlist_data['tracks_failed'])
+            success_message = '{}/{} songs moved from {} to playlist "{}" on {}.\nNew playlist link: {}'\
+                              .format(transformed_playlist_data['tracks_moved'], track_count, from_platform,
+                                      playlist_name, to_platform, transformed_playlist_data['playlist_url'])
+            st.success(success_message)

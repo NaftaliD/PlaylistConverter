@@ -132,7 +132,7 @@ class Youtube(MusicAppInterface):
             song.set_title(song_name)
 
     @staticmethod
-    def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> str:
+    def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> dict:
         """Convert ndarry of songs to a playlist.
 
         Keyword arguments:
@@ -140,7 +140,7 @@ class Youtube(MusicAppInterface):
         playlist_name: str -- name for new playlist
 
         return:
-        str -- link to the newly created string
+        dict -- details of the moved playlist
         """
 
         credentials = youtubeOAuth.handle_oauth(YOUTUBE_SCOPE)
@@ -152,6 +152,7 @@ class Youtube(MusicAppInterface):
         playlist_id = pl_response['id']
 
         # Add song to the playlist
+        new_playlist_data = {'tracks_failed': [], 'tracks_moved': 0, 'playlist_url': YOUTUBE_URL + playlist_id}
         for song in song_array:
             if song.get_is_include():
                 song_found, song_id = Youtube.__search_song(song, yt)
@@ -161,7 +162,10 @@ class Youtube(MusicAppInterface):
                                                                                "resourceId": {"kind": "youtube#video",
                                                                                               "videoId": song_id}}})
                     song_request.execute()
-        return YOUTUBE_URL + playlist_id
+                    new_playlist_data['tracks_moved'] += 1
+                else:
+                    new_playlist_data['tracks_failed'].append(song_id)
+        return new_playlist_data
 
     @staticmethod
     def __search_song(song: Song, yt) -> (bool, str):

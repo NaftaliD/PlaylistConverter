@@ -18,7 +18,7 @@ class MusicAppInterface:
         pass
 
     @staticmethod
-    def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> str:
+    def array_to_playlist(song_array: np.ndarray, playlist_name: str) -> dict:
         """convert ndarry of songs to a playlist.
 
         Keyword arguments:
@@ -26,7 +26,7 @@ class MusicAppInterface:
         playlist_name: str -- name for new playlist
 
         return:
-        str -- link to the newly created string
+        dict -- details of the moved playlist
         """
 
         pass
