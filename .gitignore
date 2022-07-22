@@ -12,3 +12,5 @@
 /src/Backend/__pycache__/spotify.cpython-39.pyc
 /src/Backend/__pycache__/youtube.cpython-39.pyc
 /src/Backend/__pycache__/youtubeOAuth.cpython-39.pyc
+/src/YouTube_client_secret.json
+/src/config.json
