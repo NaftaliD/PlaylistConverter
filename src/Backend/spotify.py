@@ -38,17 +38,21 @@ class Spotify(MusicAppInterface):
         except (requests.exceptions.HTTPError, spotipy.exceptions.SpotifyException):
             raise ValueError('Invalid Spotify playlist link')
         playlist_title = playlist['name']
+        track_count = playlist['tracks']['total']
+        # get playlist tracks
         songs_array = []
-        for song in playlist['tracks']['items']:
-            song_name = song['track']['name']
-            artist = song['track']['artists'][0]['name']
-            if song['video_thumbnail']['url']:
-                image = song['video_thumbnail']['url']
-            elif len(song['track']['album']['images']):  # Take album picture
-                image = song['track']['album']['images'][0]['url']
-            else:
-                image = None
-            songs_array.append(Song(song_name, artist, image))
+        for i in range(0, track_count, 50):
+            tracks = sp.playlist_items(playlist_link, limit=50, offset=i)
+            for song in tracks['items']:
+                song_name = song['track']['name']
+                artist = song['track']['artists'][0]['name']
+                if song['video_thumbnail']['url']:
+                    image = song['video_thumbnail']['url']
+                elif len(song['track']['album']['images']):  # Take album picture
+                    image = song['track']['album']['images'][len(song['track']['album']['images'])-1]['url']
+                else:
+                    image = None
+                songs_array.append(Song(song_name, artist, image))
         return np.array(songs_array), playlist_title
 
     @staticmethod

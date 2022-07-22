@@ -3,6 +3,8 @@ import playlistConverter
 import numpy as np
 from Backend.song import Song
 
+SONGS_PER_PAGE = 9
+
 
 def song_callback(song: Song):
     song.change_include()
@@ -10,6 +12,14 @@ def song_callback(song: Song):
         st.session_state.songs_included += 1
     else:
         st.session_state.songs_included -= 1
+
+
+def next_page_callback():
+    st.session_state.table_page += 1
+
+
+def previous_page_callback():
+    st.session_state.table_page -= 1
 
 
 def print_playlist_table(songs: np.ndarray, title: str):
@@ -22,20 +32,34 @@ def print_playlist_table(songs: np.ndarray, title: str):
 
     playlist_table = st.expander('Expand:', True, )
     with playlist_table:
-        title_culs = st.columns([1, 4])
-        title_culs[0].subheader('{}/{}'.format(st.session_state.songs_included, songs.size))
+        title_culs = st.columns([1, 5])
+        if st.session_state.songs_included == songs.size:
+            title_culs[0].subheader('{}'.format(st.session_state.songs_included))
+        else:
+            title_culs[0].subheader('{}/{}'.format(st.session_state.songs_included, songs.size))
         title_culs[1].subheader(title)
-        i = 0
-        for song in songs:
-            columns = st.columns([1, 1, 7])
-            columns[0].checkbox('', key=i, value=True, on_change=song_callback, args=(song,))
-            columns[1].image(song.get_image(), width=40)
-            columns[2].write(song.get_title() + ' ' + song.get_artist())
+        max_pages = songs.size//SONGS_PER_PAGE
+        if st.session_state.table_page != max_pages:
+            print_up_to = st.session_state.table_page*SONGS_PER_PAGE+SONGS_PER_PAGE
+        else:
+            print_up_to = songs.size
+        # print 10 songs with option to move pages
+        for i in range(st.session_state.table_page*SONGS_PER_PAGE, print_up_to, 1):
+            song = songs[i]
+            columns = st.columns([1, 8, 5, 40])
+            columns[1].checkbox('', key=i, value=song.get_is_include(), on_change=song_callback, args=(song,))
+            columns[2].image(song.get_image(), width=40)
+            columns[3].write(song.get_title() + ' ' + song.get_artist())
             st.write('')
-            i += 1
+        columns = st.columns([4, 5, 2])
+        columns[1].write('page {} out of {}'.format(st.session_state.table_page+1, max_pages+1))
+        if st.session_state.table_page:
+            columns[0].button('previous page', on_click=previous_page_callback)
+        if st.session_state.table_page != max_pages:
+            columns[2].button('Next page', on_click=next_page_callback)
 
 
-st.title('platform playlist converter')
+st.title('Platform Playlist Converter')
 
 # set session arguments
 if 'playlist_imported' not in st.session_state:
@@ -48,6 +72,8 @@ if 'playlist_link' not in st.session_state:
     st.session_state.playlist_link = ''
 if 'songs_included' not in st.session_state:
     st.session_state.songs_included = 0
+if 'table_page' not in st.session_state:
+    st.session_state.table_page = 0
 
 from_platform = st.selectbox(
     'Playlist from platform:',
@@ -60,6 +86,7 @@ if link != st.session_state.playlist_link:  # The link was deleted or changed
     st.session_state.song_array = np.ndarray
     st.session_state.playlist_title = ''
     st.session_state.playlist_link = link
+    st.session_state.table_page = 0
 
 if st.session_state.playlist_link and not st.session_state.playlist_imported:
     try:
