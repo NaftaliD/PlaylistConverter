@@ -1,0 +1,14 @@
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/PlaylistConverter.iml
+/.idea/vcs.xml
+/src/.cache
+/src/__pycache__/playlistConverter.cpython-39.pyc
+/src/Backend/__pycache__/appleMusic.cpython-39.pyc
+/src/Backend/__pycache__/musicAppInterface.cpython-39.pyc
+/src/Backend/__pycache__/platformFactory.cpython-39.pyc
+/src/Backend/__pycache__/song.cpython-39.pyc
+/src/Backend/__pycache__/spotify.cpython-39.pyc
+/src/Backend/__pycache__/youtube.cpython-39.pyc
+/src/Backend/__pycache__/youtubeOAuth.cpython-39.pyc
