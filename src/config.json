@@ -1,0 +1,18 @@
+{
+  "Spotify": {
+    "client_id" : "spotify client_id",
+    "client_secret" : "spotify client secret",
+    "redirect_url" : "http://localhost:8080/",
+    "scope" : "playlist-modify-public",
+    "spotify_max_tracks_to_add_at_once" : "100"
+  },
+
+  "YouTube": {
+    "api_key" : "Google api key",
+    "secret_path" : "Path to YouTube_client_secret.json file (Doanloeded credentials from Google develpor console)",
+    "scope" : "https://www.googleapis.com/auth/youtube.force-ssl",
+    "url" : "https://youtube.com/playlist?list="
+  },
+
+  "Apple Music": {}
+}
