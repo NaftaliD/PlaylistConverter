@@ -11,7 +11,7 @@ Might add others in the future.
 
 The code is implemented to run with Gui using Streamlib but can be used in pure python like in main.py
 
-To execute one needs develpor keys and Tokens from both YouTube and Spotify:
+To execute add develpor keys and Tokens to config.json from both YouTube and Spotify:
 
 https://developer.spotify.com/dashboard/
 
